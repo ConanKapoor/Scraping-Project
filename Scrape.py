@@ -3,7 +3,7 @@
 # Importing libraries
 from bs4 import BeautifulSoup
 import urllib.request
-import os,re
+import os,tldextract
 
 # Creating Output folder
 if (os.path.exists("Output")):
@@ -23,19 +23,32 @@ response = urllib.request.urlopen(request)
 # Using BeautifulSoup to parse html object response.
 soup = BeautifulSoup(response.read(),'html.parser')
 
-# Finding Specific DIV tag data
+# Finding Specific "a" tag data
 links = []
-divTag = soup.find_all("a", {"class": "NormalText"})
+aTag = soup.find_all("a", {"class": "NormalText"})
 
 # Collecting all the links from given webpage
-for tag in divTag:
+for tag in aTag:
     links.append(tag.get('href'))
 
-#################### Now links list contains all the links to scrape###########################
+# Saving links in a file
+linkfile = open('links.txt', 'w')
+for link in links:
+    linkfile.write("%s\n" %link)
+
+#################### Now links list contains all the links to scrape ###########################
 
 for link in links:
     # Opening and scraping the data from every page.
     request = urllib.request.Request(link)
     response = urllib.request.urlopen(request)
     soup = BeautifulSoup(response.read(),'html.parser')
-    print(soup)
+
+    # Deciding File Name
+    parts = link.split("/")
+    name = parts[len(parts)-1].split(".")
+    regex = name[0]
+    filename = str(os.path.abspath("") + '/Output/Scraped-'+ regex)
+
+    # Finding Specific DIV tag data
+    divTag = soup.find("div", {"class": "post-content"})
