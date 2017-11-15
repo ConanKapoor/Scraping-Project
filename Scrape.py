@@ -15,6 +15,10 @@ if (os.path.exists("Output")):
 else:
     os.makedirs("Output")
 
+# Making a log file
+logs = open('logs.txt','a')
+logs.write("Following links threw errors. Have to do manually -->")
+
 #################### Scraping Logic Below ###########################
 
 # Collecting html content.
@@ -44,26 +48,31 @@ print (">>>Links can be found at links.txt<<<")
 
 #################### Now links list contains all the links to scrape ###########################
 
+count = 1
 for link in links:
     # Just for printing purposes
-    i = 1
-    print("\n>>> %s. Scraping data from %s <<<" %(i,link))
-    i = i+1
+    print("\n>>> %s. Scraping data from %s" %(count,link))
 
     # Opening and scraping the data from every page.
     request = urllib.request.Request(link)
+    try:
+        urllib.request.urlopen(request)
+    except urllib.error.URLError as e:
+        print("\t>!>!> caught a 404 error - skipping to next link.")
+        continue
+
     response = urllib.request.urlopen(request)
     soup = BeautifulSoup(response.read().decode('utf-8', 'ignore'),"html5lib")
 
     # Deciding File Name
     parts = link.split("/")
     name = parts[len(parts)-1].split(".")
-    filename1 = str(os.path.abspath("") + '/Output/Positive-'+ name[0] + ".txt")
-    filename2 = str(os.path.abspath("") + '/Output/Negative-'+ name[0] + ".txt")
+    filename1 = str(os.path.abspath("") + '/Output/Positive/Positive-'+ name[0] + ".txt")
+    filename2 = str(os.path.abspath("") + '/Output/Negative/Negative-'+ name[0] + ".txt")
 
     # Opening Files
-    positivefile = open(filename1,"a")
-    negativefile = open(filename2,"a")
+    positivefile = open(filename1,'a')
+    negativefile = open(filename2,'a')
 
     # Finding Specific DIV tag data
     divTag = soup.find("div", {"class": "post-content"})
@@ -73,7 +82,7 @@ for link in links:
     # Here we are finding one anchor string which is not changing due to encoding
     # From there we are manually picking up data
     # Very complicated logic = NOT A GOOD CODE
-    for i in range(0:len(data)):
+    for i in range(0,len(data)):
         if "<p><strong>కథ :</strong></p>" in str(data[i]):
             savepoint1 = i
             break
@@ -93,15 +102,27 @@ for link in links:
             savepoint4 = i
             break
 
+    if (savepoint1 == savepoint2 or savepoint2==savepoint3 or savepoint3==savepoint4):
+        print("\t>!>!> caught a 404 error - skipping to next link.")
+        logs.write(link)
+        continue
+
     # Saving positive points in respective file
     for i in range(savepoint2+1,savepoint3):
-        temp = str(data[i]).replace('<p>','').replace('/<p>','')
-        postivefile.write(temp)
+        temp = str(data[i]).replace('<p>','').replace('</p>','')
+        positivefile.write(temp)
+        positivefile.write("\n\n")
 
     # Saving negative points in respective file
     for i in range(savepoint3+1,savepoint4):
-        temp = str(data[i]).replace('<p>','').replace('/<p>','')
+        temp = str(data[i]).replace('<p>','').replace('</p>','')
         negativefile.write(temp)
+        negativefile.write("\n\n")
 
-        positivefile.close()
-        negativefile.close()
+    positivefile.close()
+    negativefile.close()
+
+    print("\t>>> DONE : Scraped %s \n" %(count))
+    count = count+1
+
+logs.close()
