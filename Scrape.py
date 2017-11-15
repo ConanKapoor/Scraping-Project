@@ -21,7 +21,8 @@ request = urllib.request.Request(url)
 response = urllib.request.urlopen(request)
 
 # Using BeautifulSoup to parse html object response.
-soup = BeautifulSoup(response.read(),'html.parser')
+page = BeautifulSoup(response.read(),'html.parser')
+soup = page.encode('utf-8')
 
 # Finding Specific "a" tag data
 links = []
@@ -52,3 +53,4 @@ for link in links:
 
     # Finding Specific DIV tag data
     divTag = soup.find("div", {"class": "post-content"})
+    divTag.find(text="")
