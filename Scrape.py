@@ -17,6 +17,8 @@ if (os.path.exists("Output")):
     os.makedirs("Output/Negative")
 else:
     os.makedirs("Output")
+    os.makedirs("Output/Positive")
+    os.makedirs("Output/Negative")
 
 # Making a log file
 logs = open('logs.txt','a')
